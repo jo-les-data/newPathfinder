@@ -258,6 +258,11 @@ public:
         markPosition();
         maxMoves = maxMovesInput;
     }
+
+    const std::vector<std::vector<int>> getHistory()
+    {
+        return history;
+    }
     float computeDist()
     {
         return sqrtf(squared((float)xPos - labirynthe->getOrigin()[0]) + squared((float)yPos - labirynthe->getOrigin()[1]));
@@ -477,7 +482,7 @@ public:
         // on recupere d'abord les cout de deplacement
         for (int i = 0; i < vectDir->size(); i++)
         {
-/*            si on est en step by step, on prendra le meilleur chemin trouver grace a la memoire du voyageur*/
+            /*si on est en step by step, on prendra le meilleur chemin trouver grace a la memoire du voyageur*/
             if (stepByStep)
             {
                 vectCost.push_back(-(float)memoire->getFromAbsolute(vectDir->at(i)[0], vectDir->at(i)[1]));
@@ -598,26 +603,22 @@ public:
         {
             while (computeDist() > 0 && nMoves < maxMoves)
             {
-                switch (_getch())
-                {
-                default:
                     int dir = computeBestDir(true);
                     move(dir);
                     nMoves++;
-                    labirynthe->displayMap();
-                }
+                    //labirynthe->displayMap();
             }
             if (computeDist() == 0)
             {
                 std::cout << "on a trouver le crane de cristal en " << nMoves << " mouvement!" << std::endl << std::endl;
-                labirynthe->displayMap();
-                resetLabirynthe();
-                reussite++;
+                //labirynthe->displayMap();
+                //resetLabirynthe();
+                //reussite++;
             }
             else
             {
                 std::cout << "on a pas trouve..." << std::endl << std::endl;
-                labirynthe->displayMap();
+                //labirynthe->displayMap();
             }
         }
         else
@@ -654,23 +655,23 @@ public:
 
 sf::Color getColorFromInt(int value)
 {
-    value = (int)(value * 3 * 256 / 100);
+    if (value == 0)
+    {
+        return sf::Color(0, 0, 0, 255);
+    }
+    value = (int)((value-1) * 2 * 256 / 200);
     if (value / 255 == 0)
     {
-        return sf::Color(value, 0, 0, 255);
+        return sf::Color(0, value, 255 - value, 255);
     }
     else if (value / 255 == 1)
     {
-        return sf::Color(0, value % 256, 0, 255);
-    }
-    else
-    {
-        return sf::Color(0, 0, value % 256, 255);
+        return sf::Color(value % 256, 255 - (value % 256), 0, 255);
     }
 }
 
 
-void displayMemoryWindow(VoyageurDirect* voyageur)
+void displayMemoryWindow(VoyageurDirect* voyageur, bool withTrace)
 {
     sf::Font* font = new sf::Font;
     if (!font->loadFromFile("arial.ttf"));
@@ -703,11 +704,71 @@ void displayMemoryWindow(VoyageurDirect* voyageur)
                 window.draw(rectangle);
             }
         }
+        if (withTrace)
+        {
+            for (int i = 0; i < voyageur->getHistory().size(); i++)
+            {
+                rectangle.setSize(sf::Vector2f(4, 4));
+                rectangle.setFillColor(sf::Color(255,255,255,255));
+                rectangle.setOutlineThickness(0);
+                rectangle.setPosition(voyageur->getHistory()[i][0]*4, voyageur->getHistory()[i][1]*4);
+                window.draw(rectangle);
+            }
+        }
+        window.display();
+    }
+}
+void displayLabiryntheWindow(VoyageurDirect* voyageur)
+{
+    sf::Font* font = new sf::Font;
+    if (!font->loadFromFile("arial.ttf"));
+
+    delete font;
+    int nrow = voyageur->getLabirynthe()->size()[0];
+    int ncol = voyageur->getLabirynthe()->size()[1];
+    sf::RenderWindow window(sf::VideoMode(nrow * 4, ncol * 4), "SFML works!");
+
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear();
+        sf::RectangleShape rectangle;
+        for (int i = 0; i < voyageur->getLabirynthe()->size()[0]; i++)
+        {
+            for (int j = 0; j < voyageur->getLabirynthe()->size()[1]; j++)
+            {
+                if (voyageur->getLabirynthe()->getFromAbsolute(i, j)>0)
+                {
+                    rectangle.setSize(sf::Vector2f(4, 4));
+                    if (voyageur->getLabirynthe()->getFromAbsolute(i, j) == 1)
+                    {
+                        rectangle.setFillColor(sf::Color(255,255,255,255));
+                    }
+                    else if (voyageur->getLabirynthe()->getFromAbsolute(i, j) == 2)
+                    {
+                        rectangle.setFillColor(sf::Color(0, 0, 255, 255));
+                    }
+                    else if (voyageur->getLabirynthe()->getFromAbsolute(i, j) == 3)
+                    {
+                        rectangle.setFillColor(sf::Color(0, 255, 0, 255));
+                    }
+                    rectangle.setOutlineThickness(0);
+                    rectangle.setPosition(i * 4, j * 4);
+                    window.draw(rectangle);
+                }
+            }
+        }
 
         window.display();
     }
 }
-
 
 
 
@@ -717,7 +778,7 @@ int main()
     std::cout << "Hello World!\n";
     int N = 150;
     Bideque grille(N, N, 0);
-    Bideque memoire(N, N, 1);
+    Bideque memoire(N, N, 0);
     std::cout << "createion de la grille ok" << std::endl;
     for (int i = 0; i < N; i++)
     {
@@ -741,7 +802,6 @@ int main()
             }
         }
     }
-    std::cout << rand() << std::endl;
     std::cout << "ajout des obstacle ok" << std::endl;
 
 
@@ -750,26 +810,10 @@ int main()
 
     std::cout << "creation du voyageur ok" << std::endl;
     std::cout << (int)2.5 << std::endl;
-    indiana.makeNSearch(500);
+    displayLabiryntheWindow(&indiana);
+    indiana.makeNSearch(1000);
     std::cout << "recherche terminee" << std::endl;
-    displayMemoryWindow(&indiana);
-
-    //indiana.getLabirynthe()->display();
-    //std::cout << "meilleur chemins en " << indiana.getNSteps() << " mouvements" << std::endl;
-    ////indiana.getMemoire()->display();
-    //std::ofstream fw("C:\\Users\\POEI\\Documents\\python\\test.txt", std::ofstream::out);
-    //for (int i = 0; i < indiana.getMemoire()->size()[0]; i++)
-    //{
-    //    for (int j = 0; j < indiana.getMemoire()->size()[1]; j++)
-    //    {
-    //        fw << indiana.getMemoire()->getFromAbsolute(i, j);
-    //        if (j < indiana.getMemoire()->size()[1] - 1)
-    //        {
-    //            fw << ";";
-    //        }
-    //    }
-    //    fw << "\n";
-    //}
-    //fw.close();
-    //indiana.search(true);
+    displayMemoryWindow(&indiana, false);
+    indiana.search(true);
+    displayMemoryWindow(&indiana, true);
 }
