@@ -238,6 +238,7 @@ class VoyageurBase
 protected:
     Bideque* labirynthe;
     Bideque* memoire;
+    bool randomInit;
     int xPos;
     int yPos;
     std::vector<std::vector<int>> history;
@@ -246,12 +247,21 @@ protected:
     int maxMoves;
 public:
     int reussite;
-    VoyageurBase(Bideque* labiryntheInput, Bideque* memoireInput, int maxMovesInput)
+    VoyageurBase(Bideque* labiryntheInput, Bideque* memoireInput, int maxMovesInput, bool randomInitInput)
     {
         labirynthe = labiryntheInput;//contient les lac, foret et murs
         memoire = memoireInput;//contient l'ebauche de carte a* necessaire a atteindre l'origine
-        xPos = 0;//rand() % labirynthe->size()[0]; dans le cas ou on veux cree la carte le l'algo A*
-        yPos = 0;//rand() % labirynthe->size()[0];
+        randomInit = randomInitInput;
+        if (randomInit)
+        {
+            xPos = rand() % labirynthe->size()[0];
+            yPos = rand() % labirynthe->size()[0];
+        }
+        else
+        {
+            xPos = 0;//rand() % labirynthe->size()[0]; dans le cas ou on veux cree la carte le l'algo A*
+            yPos = 0;//rand() % labirynthe->size()[0];
+        }
         history.push_back(std::vector<int> {xPos, yPos});//pour remplir la memoire en cas de reussite de la recherche de chemin
         nStep = 25000;
         reussite = 0;
@@ -298,8 +308,16 @@ public:
 
     void resetLabirynthe()
     {
-        xPos = 0;// rand() % labirynthe->size()[0];
-        yPos = 0;// rand() % labirynthe->size()[0];
+        if (randomInit)
+        {
+            xPos = rand() % labirynthe->size()[0];
+            yPos = rand() % labirynthe->size()[0];
+        }
+        else
+        {
+            xPos = 0;
+            yPos = 0;
+        }
         for (int i = 0; i < labirynthe->size()[0]; i++)
         {
             for (int j = 0; j < labirynthe->size()[1]; j++)
@@ -431,7 +449,7 @@ public:
 class VoyageurDirect : public VoyageurBase
 {
 public:
-    VoyageurDirect(Bideque* labiryntheInput, Bideque* memoireInput, int maxMovesInput) : VoyageurBase(labiryntheInput, memoireInput, maxMovesInput) {}
+    VoyageurDirect(Bideque* labiryntheInput, Bideque* memoireInput, int maxMovesInput, bool randomInitInput) : VoyageurBase(labiryntheInput, memoireInput, maxMovesInput, randomInitInput) {}
     ~VoyageurDirect() {}
     /*Ici on va regarder quel voisin est accessible (pas en dehors de la map)
     on vois plus tard le cas on l'on rencontre un mur*/
@@ -806,7 +824,7 @@ int main()
 
 
     //grille.displayMap();
-    VoyageurDirect indiana(&grille, &memoire, 200);
+    VoyageurDirect indiana(&grille, &memoire, 200, true);
 
     std::cout << "creation du voyageur ok" << std::endl;
     std::cout << (int)2.5 << std::endl;
@@ -814,6 +832,6 @@ int main()
     indiana.makeNSearch(1000);
     std::cout << "recherche terminee" << std::endl;
     displayMemoryWindow(&indiana, false);
-    indiana.search(true);
-    displayMemoryWindow(&indiana, true);
+    //indiana.search(true);
+    //displayMemoryWindow(&indiana, true);
 }
