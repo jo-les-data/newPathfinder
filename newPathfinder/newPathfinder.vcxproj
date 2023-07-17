@@ -133,8 +133,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bideque.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SFMLTest.cpp" />
+    <ClCompile Include="VoyageurBase.cpp" />
+    <ClCompile Include="Voyageurs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bideque.hpp" />
+    <ClInclude Include="VoyageurBase.hpp" />
+    <ClInclude Include="Voyageurs.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
