@@ -261,7 +261,7 @@ void VoyageurDirect::displayMemoryWindow(bool withTrace)
         texture.update(window);
         if (!imgSaved && texture.copyToImage().saveToFile("..\\memory.png"))
         {
-            imgSaved;
+            imgSaved = true;
             std::cout << "screenshot saved to " << "..\\memory.png" << std::endl;
         }
         window.display();
