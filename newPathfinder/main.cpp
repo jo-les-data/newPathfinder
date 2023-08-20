@@ -50,11 +50,11 @@ int main()
 
 
     //grille.displayMap();
-    VoyageurDirect indiana(&grille, &memoire, 200, false);
+    VoyageurDirect indiana(&grille, &memoire, 200, true);
 
     std::cout << "creation du voyageur ok" << std::endl;
     indiana.displayLabiryntheWindow();
-    indiana.makeNSearch(50);
+    indiana.makeNSearch(500);
     std::cout << "recherche terminee" << std::endl;
     indiana.displayMemoryWindow(false);
     indiana.search(true);
